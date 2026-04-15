@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ClaudeSwitch — macOS Menu Bar App</title>
   <meta name="description" content="A fast, native macOS menu bar app for managing AI model profiles.">
+  <meta name="theme-color" content="#020617">
   <link rel="icon" href="icon.png">
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
@@ -12,12 +13,15 @@
     :root {
       --bg: #020617;
       --surface: #0f172a;
+      --surface-hover: #1e293b;
       --border: #1e293b;
       --text: #f8fafc;
       --text-muted: #94a3b8;
       --blue: #2563eb;
       --blue-light: #3b82f6;
       --blue-glow: rgba(37, 99, 235, 0.15);
+      --radius: 999px;
+      --transition: 200ms ease;
     }
 
     body {
@@ -26,6 +30,28 @@
       color: var(--text);
       -webkit-font-smoothing: antialiased;
       line-height: 1.6;
+      touch-action: manipulation;
+    }
+
+    /* ---- Skip link (a11y) ---- */
+    .skip-link {
+      position: absolute;
+      top: -100%;
+      left: 16px;
+      padding: 8px 16px;
+      background: var(--blue);
+      color: #fff;
+      border-radius: 8px;
+      font-size: 14px;
+      text-decoration: none;
+      z-index: 1000;
+    }
+    .skip-link:focus { top: 16px; }
+
+    /* ---- Focus styles (a11y) ---- */
+    :focus-visible {
+      outline: 2px solid var(--blue-light);
+      outline-offset: 3px;
     }
 
     /* ---- Hero ---- */
@@ -55,7 +81,7 @@
       align-items: center;
       gap: 8px;
       padding: 6px 14px;
-      border-radius: 999px;
+      border-radius: var(--radius);
       background: var(--surface);
       border: 1px solid var(--border);
       font-size: 14px;
@@ -77,6 +103,9 @@
       border-radius: 18px;
       margin-bottom: 24px;
       box-shadow: 0 8px 32px rgba(37, 99, 235, 0.3);
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
     }
 
     h1 {
@@ -87,7 +116,8 @@
       margin-bottom: 24px;
       background: linear-gradient(to bottom right, #fff, #94a3b8);
       -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      color: transparent;
     }
 
     .subtitle {
@@ -110,14 +140,16 @@
       align-items: center;
       gap: 10px;
       padding: 14px 32px;
-      border-radius: 999px;
+      border-radius: var(--radius);
       font-size: 16px;
       font-weight: 600;
       text-decoration: none;
-      transition: all 0.2s ease;
+      transition: background-color var(--transition), transform var(--transition), box-shadow var(--transition);
       cursor: pointer;
       border: none;
     }
+
+    .btn svg { flex-shrink: 0; }
 
     .btn-primary {
       background: var(--blue);
@@ -125,8 +157,19 @@
       box-shadow: 0 4px 24px rgba(37, 99, 235, 0.25);
     }
 
-    .btn-primary:hover { background: var(--blue-light); transform: scale(1.03); }
-    .btn-primary:active { transform: scale(0.98); }
+    .btn-primary:hover { background: var(--blue-light); }
+    .btn-primary:active { transform: scale(0.97); }
+
+    .btn-primary.is-loading {
+      opacity: 0.85;
+      pointer-events: none;
+    }
+
+    .btn-primary.is-loading svg { animation: spin 1s linear infinite; }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
 
     .btn-secondary {
       background: var(--surface);
@@ -134,7 +177,8 @@
       border: 1px solid var(--border);
     }
 
-    .btn-secondary:hover { background: #1e293b; }
+    .btn-secondary:hover { background: var(--surface-hover); }
+    .btn-secondary:active { transform: scale(0.97); }
 
     .version-tag {
       font-size: 13px;
@@ -145,7 +189,7 @@
       margin-left: 2px;
     }
 
-    /* ---- Screenshot ---- */
+    /* ---- Screenshots ---- */
     .screenshot-section {
       padding: 0 24px 96px;
     }
@@ -154,8 +198,14 @@
       max-width: 900px;
       margin: 0 auto;
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr;
       gap: 24px;
+    }
+
+    @media (min-width: 640px) {
+      .screenshots-grid {
+        grid-template-columns: 1fr 1fr;
+      }
     }
 
     .screenshot-card {
@@ -168,14 +218,16 @@
 
     .screenshot-card img {
       width: 100%;
-      border-radius: 10px;
       display: block;
+      border-radius: 10px;
+      aspect-ratio: 16 / 10;
+      object-fit: cover;
     }
 
-    .screenshot-card p {
+    .screenshot-card figcaption {
       text-align: center;
       color: var(--text-muted);
-      font-size: 13px;
+      font-size: 14px;
       padding: 10px 0 4px;
     }
 
@@ -234,71 +286,85 @@
     }
 
     footer a:hover { text-decoration: underline; }
+
+    /* ---- Reduced motion (a11y) ---- */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+      .btn:active { transform: none; }
+    }
   </style>
 </head>
 <body>
 
-  <!-- Hero -->
-  <section class="hero">
-    <img src="icon.png" alt="ClaudeSwitch" class="app-icon">
-    <div class="badge">v0.0.1 Now Available</div>
-    <h1>Control your AI models<br>from the menu bar.</h1>
-    <p class="subtitle">
-      ClaudeSwitch is a swift-native macOS menubar app to switch connections,
-      manage API keys, and map models for AI APIs like Gemini, Claude, and more.
-    </p>
-    <div class="buttons">
-      <a id="download-btn" href="https://github.com/gitAbid/claude-switch/releases/latest" class="btn btn-primary">
-        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        Download for macOS
-      </a>
-      <a href="https://github.com/gitAbid/claude-switch" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">
-        <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
-        View Source
-      </a>
-    </div>
-  </section>
+  <a href="#main" class="skip-link">Skip to content</a>
 
-  <!-- Screenshots -->
-  <section class="screenshot-section">
-    <div class="screenshots-grid">
-      <div class="screenshot-card">
-        <img src="screenshot-menu.png" alt="ClaudeSwitch menu bar dropdown showing profile switching">
-        <p>Switch profiles from the menu bar</p>
+  <main id="main">
+    <!-- Hero -->
+    <section class="hero">
+      <img src="icon.png" alt="ClaudeSwitch app icon" class="app-icon" width="80" height="80">
+      <div class="badge" aria-live="polite">v0.0.1 Now Available</div>
+      <h1>Control your AI models<br>from the menu bar.</h1>
+      <p class="subtitle">
+        ClaudeSwitch is a swift-native macOS menubar app to switch connections,
+        manage API keys, and map models for AI APIs like Gemini, Claude, and more.
+      </p>
+      <div class="buttons">
+        <a id="download-btn" href="https://github.com/gitAbid/claude-switch/releases/latest" class="btn btn-primary is-loading" aria-label="Download latest ClaudeSwitch for macOS">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span>Download for macOS</span>
+        </a>
+        <a href="https://github.com/gitAbid/claude-switch" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" aria-label="View ClaudeSwitch source code on GitHub">
+          <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+          <span>View Source</span>
+        </a>
       </div>
-      <div class="screenshot-card">
-        <img src="screenshot-manage.png" alt="ClaudeSwitch profile management window">
-        <p>Manage profiles in a clean UI</p>
-      </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- Features -->
-  <section class="features">
-    <div class="features-grid">
-      <div class="feature">
-        <div class="feature-icon">
-          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M15 2v2M15 20v2M2 15h2M20 15h2M9 2v2M9 20v2M2 9h2M20 9h2"/></svg>
-        </div>
-        <h3>Native Execution</h3>
-        <p>Built with Swift for blazing fast performance on macOS.</p>
+    <!-- Screenshots -->
+    <section class="screenshot-section">
+      <div class="screenshots-grid">
+        <figure class="screenshot-card">
+          <img src="screenshot-menu.png" alt="ClaudeSwitch menu bar dropdown showing profile switching" loading="lazy" width="600" height="375">
+          <figcaption>Switch profiles from the menu bar</figcaption>
+        </figure>
+        <figure class="screenshot-card">
+          <img src="screenshot-manage.png" alt="ClaudeSwitch profile management window" loading="lazy" width="600" height="375">
+          <figcaption>Manage profiles in a clean UI</figcaption>
+        </figure>
       </div>
-      <div class="feature">
-        <div class="feature-icon">
-          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+    </section>
+
+    <!-- Features -->
+    <section class="features">
+      <div class="features-grid">
+        <div class="feature">
+          <div class="feature-icon" aria-hidden="true">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M15 2v2M15 20v2M2 15h2M20 15h2M9 2v2M9 20v2M2 9h2M20 9h2"/></svg>
+          </div>
+          <h3>Native Execution</h3>
+          <p>Built with Swift for blazing fast performance on macOS.</p>
         </div>
-        <h3>Instant Switching</h3>
-        <p>Change AI model profiles in just two clicks directly from the menu bar.</p>
-      </div>
-      <div class="feature">
-        <div class="feature-icon">
-          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <div class="feature">
+          <div class="feature-icon" aria-hidden="true">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          </div>
+          <h3>Instant Switching</h3>
+          <p>Change AI model profiles in just two clicks directly from the menu bar.</p>
         </div>
-        <h3>Local &amp; Secure</h3>
-        <p>Your API keys and tokens are securely stored locally on your machine.</p>
+        <div class="feature">
+          <div class="feature-icon" aria-hidden="true">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <h3>Local &amp; Secure</h3>
+          <p>Your API keys and tokens are securely stored locally on your machine.</p>
+        </div>
       </div>
-    </div>
-  </section>
+    </section>
+  </main>
 
   <!-- Footer -->
   <footer>
@@ -306,20 +372,27 @@
   </footer>
 
   <script>
-    fetch("https://api.github.com/repos/gitAbid/claude-switch/releases/latest")
-      .then(r => r.json())
-      .then(data => {
-        const btn = document.getElementById("download-btn");
-        const dmg = (data.assets || []).find(a => a.name.endsWith(".dmg"));
-        if (dmg) btn.href = dmg.browser_download_url;
-        if (data.tag_name) {
-          const tag = document.createElement("span");
-          tag.className = "version-tag";
-          tag.textContent = data.tag_name;
-          btn.appendChild(tag);
-        }
-      })
-      .catch(() => {});
+    (function() {
+      var btn = document.getElementById("download-btn");
+      fetch("https://api.github.com/repos/gitAbid/claude-switch/releases/latest")
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          var dmg = (data.assets || []).find(function(a) { return a.name.endsWith(".dmg"); });
+          if (dmg) btn.href = dmg.browser_download_url;
+          if (data.tag_name) {
+            var badge = btn.closest('.hero').querySelector('.badge');
+            if (badge) badge.textContent = data.tag_name + ' Now Available';
+            var tag = document.createElement("span");
+            tag.className = "version-tag";
+            tag.textContent = data.tag_name;
+            btn.appendChild(tag);
+          }
+        })
+        .catch(function() {})
+        .finally(function() {
+          btn.classList.remove("is-loading");
+        });
+    })();
   </script>
 </body>
 </html>
