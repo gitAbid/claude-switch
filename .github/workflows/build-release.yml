@@ -28,6 +28,12 @@ jobs:
       - name: Copy icon into bundle
         run: cp Sources/Resources/AppIcon.icns ClaudeSwitch.app/Contents/Resources/AppIcon.icns
 
+      - name: Codesign app
+        run: codesign --force --deep -s - ClaudeSwitch.app
+
+      - name: Verify signing
+        run: codesign --verify --deep --strict --verbose=2 ClaudeSwitch.app
+
       - name: Create DMG installer
         run: bash scripts/create-dmg.sh "ClaudeSwitch-${{ steps.version.outputs.VERSION }}"
 
@@ -35,3 +41,10 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: "ClaudeSwitch-${{ steps.version.outputs.VERSION }}.dmg"
+          body: |
+            ## ClaudeSwitch ${{ steps.version.outputs.VERSION }}
+
+            ### Installation
+            1. Open the DMG
+            2. Drag **ClaudeSwitch.app** to **Applications**
+            3. On first launch, right-click the app and choose **Open** (required once for unsigned apps)
