@@ -1,0 +1,11 @@
+# Swift build artifacts
+.build/
+*.app/
+DerivedData/
+
+# macOS
+.DS_Store
+*.swp
+
+# Claude Code
+.claude/
