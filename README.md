@@ -78,3 +78,14 @@ The app appears as an icon in your menu bar. Click it to switch profiles or open
 ## License
 
 This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+
+## macOS Installation & Security Warning
+
+If you see a "damaged" or "malware" warning when opening ClaudeSwitch, this is because the app is ad-hoc signed and not notarized with a paid Apple Developer certificate. To allow it:
+
+1. Open **System Settings** > **Privacy & Security**
+2. Scroll down and click **Open Anyway** next to the security warning
+3. Alternatively, run this in your Terminal:
+   ```bash
+   xattr -cr /Applications/ClaudeSwitch.app
+   ```
