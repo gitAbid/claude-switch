@@ -34,7 +34,6 @@ When you switch profiles, ClaudeSwitch:
 ## Building
 
 ```bash
-cd ClaudeSwitch
 swift build -c release
 ```
 
@@ -55,7 +54,6 @@ The app appears as an icon in your menu bar. Click it to switch profiles or open
 ## Project structure
 
 ```
-ClaudeSwitch/
 ├── Package.swift
 └── Sources/
     ├── App.swift                    # Menu bar app entry point
