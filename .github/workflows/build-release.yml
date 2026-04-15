@@ -46,5 +46,7 @@ jobs:
 
             ### Installation
             1. Open the DMG
-            2. Drag **ClaudeSwitch.app** to **Applications**
-            3. On first launch, right-click the app and choose **Open** (required once for unsigned apps)
+            2. Double-click **Install.command** and enter your password
+            3. That's it — ClaudeSwitch is in /Applications
+
+            The installer removes macOS Gatekeeper quarantine so the app launches without warnings.
