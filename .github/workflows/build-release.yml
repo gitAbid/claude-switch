@@ -28,12 +28,8 @@ jobs:
       - name: Copy icon into bundle
         run: cp Sources/Resources/AppIcon.icns ClaudeSwitch.app/Contents/Resources/AppIcon.icns
 
-      - name: Create DMG
-        run: |
-          hdiutil create -volName "ClaudeSwitch" \
-            -srcfolder ClaudeSwitch.app \
-            -ov -format UDZO \
-            "ClaudeSwitch-${{ steps.version.outputs.VERSION }}.dmg"
+      - name: Create DMG installer
+        run: bash scripts/create-dmg.sh "ClaudeSwitch-${{ steps.version.outputs.VERSION }}"
 
       - name: Publish release
         uses: softprops/action-gh-release@v2
