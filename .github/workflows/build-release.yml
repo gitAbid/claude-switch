@@ -31,11 +31,11 @@ jobs:
       - name: Codesign app
         run: codesign --force --deep -s - ClaudeSwitch.app
 
-      - name: Verify signing
-        run: codesign --verify --deep --strict --verbose=2 ClaudeSwitch.app
+      - name: Install dmgbuild
+        run: pip3 install dmgbuild Pillow
 
       - name: Create DMG installer
-        run: bash scripts/create-dmg.sh "ClaudeSwitch-${{ steps.version.outputs.VERSION }}"
+        run: python3 scripts/create-dmg.py "ClaudeSwitch-${{ steps.version.outputs.VERSION }}"
 
       - name: Publish release
         uses: softprops/action-gh-release@v2
@@ -46,7 +46,14 @@ jobs:
 
             ### Installation
             1. Open the DMG
-            2. Double-click **Install.command** and enter your password
-            3. That's it — ClaudeSwitch is in /Applications
+            2. Drag **ClaudeSwitch** to the **Applications** folder
+            3. Open it from Applications or Spotlight
 
-            The installer removes macOS Gatekeeper quarantine so the app launches without warnings.
+            ### "Cannot be opened" / malware warning?
+            This app is not signed with an Apple Developer certificate. To allow it:
+            1. Open **System Settings** > **Privacy & Security**
+            2. Scroll down and click **Open Anyway** next to the security warning
+            3. Or run in Terminal:
+               ```
+               xattr -cr /Applications/ClaudeSwitch.app
+               ```
