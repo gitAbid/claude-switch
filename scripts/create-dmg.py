@@ -4,43 +4,38 @@
 import os
 import sys
 import struct
+import tempfile
 import zlib
 
-# --- Generate background PNG ---
-def make_png(path, width=600, height=400):
-    """Create a dark background with arrow and text instructions."""
+
+def make_background(path, width=600, height=400):
+    """Create a light background with arrow and text instructions."""
     try:
         from PIL import Image, ImageDraw, ImageFont
 
         img = Image.new("RGBA", (width, height), (245, 245, 247, 255))
         draw = ImageDraw.Draw(img)
 
-        # Arrow line from app position to Applications position
-        ax, ay = 150, 220
-        bx, by = 450, 220
-        draw.line([(ax + 90, ay), (bx - 30, by)], fill=(100, 100, 100, 180), width=4)
-        # Arrowhead
-        draw.polygon(
-            [(bx - 30, by), (bx - 48, by - 14), (bx - 48, by + 14)],
-            fill=(100, 100, 100, 180),
-        )
+        # Arrow from app position to Applications position
+        draw.line([(240, 200), (390, 200)], fill=(100, 100, 100, 180), width=4)
+        draw.polygon([(390, 200), (374, 188), (374, 212)], fill=(100, 100, 100, 180))
 
-        # Instruction text
         try:
-            font = ImageFont.truetype("/System/Library/Fonts/Helvetica.ttc", 18)
+            font = ImageFont.truetype("/System/Library/Fonts/Helvetica.ttc", 16)
         except (OSError, IOError):
             font = ImageFont.load_default()
+
         text = "Drag ClaudeSwitch to the Applications folder"
         bbox = draw.textbbox((0, 0), text, font=font)
         tw = bbox[2] - bbox[0]
-        draw.text(((width - tw) / 2, 340), text, fill=(80, 80, 80, 220), font=font)
+        draw.text(((width - tw) / 2, 330), text, fill=(80, 80, 80, 220), font=font)
 
         img.save(path)
 
     except ImportError:
-        # Fallback: minimal solid-color PNG without Pillow
-        raw = b""
+        # Fallback: solid-color PNG without Pillow
         bg = (245, 245, 247, 255)
+        raw = b""
         for y in range(height):
             raw += b"\x00"
             for x in range(width):
@@ -66,34 +61,42 @@ def make_png(path, width=600, height=400):
 
 def main():
     dmg_name = sys.argv[1] if len(sys.argv) > 1 else "ClaudeSwitch"
-    app_path = os.path.join(os.getcwd(), "ClaudeSwitch.app")
+    cwd = os.getcwd()
+    app_path = os.path.join(cwd, "ClaudeSwitch.app")
+    bg_path = os.path.join(cwd, "dmg_background.png")
 
-    bg_path = os.path.join(os.getcwd(), "dmg_background.png")
-    make_png(bg_path)
+    make_background(bg_path)
 
-    # dmgbuild settings
-    settings = {
-        "format": "UDBZ",
-        "size": None,
-        "files": [app_path],
-        "symlinks": {"Applications": "/Applications"},
-        "icon_locations": {
-            "ClaudeSwitch.app": (150, 200),
-            "Applications": (450, 200),
-        },
-        "background": bg_path,
-        "icon_size": 128.0,
-        "text_size": 16.0,
-        "window_rect": ((200, 120), (800, 520)),
-        "default_view": "icon-view",
-        "icon_view_settings": {"arrangeBy": "none"},
-    }
+    # Write a dmgbuild Python settings file
+    settings_content = f"""
+format = 'UDBZ'
+size = None
+files = ['{app_path}']
+symlinks = {{'Applications': '/Applications'}}
+icon_locations = {{
+    'ClaudeSwitch.app': (150, 190),
+    'Applications': (450, 190),
+}}
+background = '{bg_path}'
+icon_size = 128.0
+text_size = 16.0
+window_rect = ((200, 120), (800, 520))
+default_view = 'icon-view'
+icon_view_settings = {{'arrangeBy': 'none'}}
+"""
 
-    from dmgbuild import build_dmg
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
+        f.write(settings_content)
+        settings_file = f.name
 
-    output = f"{dmg_name}.dmg"
-    build_dmg(output, "ClaudeSwitch", settings)
-    print(f"Created {output}")
+    try:
+        from dmgbuild import build_dmg
+
+        output = f"{dmg_name}.dmg"
+        build_dmg(output, "ClaudeSwitch", settings_file)
+        print(f"Created {output}")
+    finally:
+        os.unlink(settings_file)
 
 
 if __name__ == "__main__":
