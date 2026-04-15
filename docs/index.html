@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ClaudeSwitch — macOS Menu Bar App</title>
   <meta name="description" content="A fast, native macOS menu bar app for managing AI model profiles.">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <link rel="icon" href="icon.png">
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -69,6 +69,14 @@
       height: 8px;
       border-radius: 50%;
       background: var(--blue);
+    }
+
+    .app-icon {
+      width: 80px;
+      height: 80px;
+      border-radius: 18px;
+      margin-bottom: 24px;
+      box-shadow: 0 8px 32px rgba(37, 99, 235, 0.3);
     }
 
     h1 {
@@ -142,30 +150,34 @@
       padding: 0 24px 96px;
     }
 
-    .screenshot-wrapper {
-      max-width: 780px;
+    .screenshots-grid {
+      max-width: 900px;
       margin: 0 auto;
-      padding: 8px;
-      border-radius: 16px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    .screenshot-card {
+      padding: 6px;
+      border-radius: 14px;
       background: rgba(30, 41, 59, 0.5);
       border: 1px solid rgba(51, 65, 85, 0.5);
-      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
     }
 
-    .screenshot-placeholder {
-      aspect-ratio: 16 / 10;
-      background: var(--surface);
+    .screenshot-card img {
+      width: 100%;
       border-radius: 10px;
-      border: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      color: #475569;
-      gap: 8px;
+      display: block;
     }
 
-    .screenshot-placeholder svg { width: 56px; height: 56px; }
+    .screenshot-card p {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 13px;
+      padding: 10px 0 4px;
+    }
 
     /* ---- Features ---- */
     .features {
@@ -228,6 +240,7 @@
 
   <!-- Hero -->
   <section class="hero">
+    <img src="icon.png" alt="ClaudeSwitch" class="app-icon">
     <div class="badge">v0.0.1 Now Available</div>
     <h1>Control your AI models<br>from the menu bar.</h1>
     <p class="subtitle">
@@ -246,12 +259,16 @@
     </div>
   </section>
 
-  <!-- Screenshot -->
+  <!-- Screenshots -->
   <section class="screenshot-section">
-    <div class="screenshot-wrapper">
-      <div class="screenshot-placeholder">
-        <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-        ClaudeSwitch Interface
+    <div class="screenshots-grid">
+      <div class="screenshot-card">
+        <img src="screenshot-menu.png" alt="ClaudeSwitch menu bar dropdown showing profile switching">
+        <p>Switch profiles from the menu bar</p>
+      </div>
+      <div class="screenshot-card">
+        <img src="screenshot-manage.png" alt="ClaudeSwitch profile management window">
+        <p>Manage profiles in a clean UI</p>
       </div>
     </div>
   </section>
